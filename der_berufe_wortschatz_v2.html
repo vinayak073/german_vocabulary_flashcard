@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Berufe Flashcards — Improved German Voice</title>
+<style>
+:root { --gap: 10px; --card-pad: 12px; }
+* { box-sizing: border-box; }
+body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 16px; }
+h1 { margin: 0 0 12px 0; font-size: 22px; }
+.controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom: 12px; }
+.controls input, .controls select, .controls button { padding:8px; font-size: 14px; }
+.grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--gap); }
+.card { border: 1px solid #000; padding: var(--card-pad); border-radius: 8px; }
+.topline { display:flex; align-items:center; gap:8px; }
+.badge { border:1px solid #000; border-radius:6px; padding:2px 6px; font-size:12px; }
+.word { font-weight:700; font-size:20px; }
+.meta { font-size:12px; opacity:0.8; margin-top:4px; }
+.row { display:flex; gap:8px; margin-top:8px; }
+.row button { flex:1; padding:8px; font-size:13px; }
+.sep { height:1px; background:#ddd; margin:8px 0; }
+.hidden-en .en, .hidden-de .de { filter: blur(6px); }
+.small { font-size: 12px; opacity: .8; }
+footer { margin-top: 14px; font-size: 12px; opacity: 0.7; }
+@media print {
+  .controls, footer { display:none; }
+  body { padding: 0; }
+  .grid { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+</head>
+<body>
+<h1>der Beruf — die Berufe • One-page with improved German TTS</h1>
+<div class="controls">
+  <input id="search" type="search" placeholder="Search (de/en)">
+  <select id="genderFilter">
+    <option value="">All</option>
+    <option value="der">der (m)</option>
+    <option value="die">die (f/pl)</option>
+    <option value="das">das (n)</option>
+  </select>
+  <button id="toggleDE">Hide/Show German</button>
+  <button id="toggleEN">Hide/Show English</button>
+  <button id="shuffle">Shuffle</button>
+  <button id="print">Print</button>
+</div>
+
+<div class="small">Tip: In phone settings, install a German TTS voice (Google Deutsch, Anna, etc.). This page will auto-pick it if available.</div>
+
+<div id="grid" class="grid"></div>
+
+<footer>
+  Works offline. Uses your device's voices (Web Speech API). This version tries hard to pick a German voice.
+</footer>
+
+<script>
+const DATA = [["der", "Arzt", "Ärzte", "doctor (male)"], ["die", "Ärztin", "Ärztinnen", "doctor (female)"], ["der", "Lehrer", "Lehrer", "teacher (male)"], ["die", "Lehrerin", "Lehrerinnen", "teacher (female)"], ["der", "Ingenieur", "Ingenieure", "engineer (male)"], ["die", "Ingenieurin", "Ingenieurinnen", "engineer (female)"], ["der", "Programmierer", "Programmierer", "programmer (male)"], ["die", "Programmiererin", "Programmiererinnen", "programmer (female)"], ["der", "Pilot", "Piloten", "pilot (male)"], ["die", "Pilotin", "Pilotinnen", "pilot (female)"], ["der", "Fotograf", "Fotografen", "photographer (male)"], ["die", "Fotografin", "Fotografinnen", "photographer (female)"], ["der", "Schauspieler", "Schauspieler", "actor"], ["die", "Schauspielerin", "Schauspielerinnen", "actress"], ["der", "Musiker", "Musiker", "musician (male)"], ["die", "Musikerin", "Musikerinnen", "musician (female)"], ["der", "Busfahrer", "Busfahrer", "bus driver (male)"], ["die", "Busfahrerin", "Busfahrerinnen", "bus driver (female)"], ["der", "Verkäufer", "Verkäufer", "salesperson (male)"], ["die", "Verkäuferin", "Verkäuferinnen", "salesperson (female)"], ["der", "Polizist", "Polizisten", "policeman"], ["die", "Polizistin", "Polizistinnen", "policewoman"], ["der", "Politiker", "Politiker", "politician (male)"], ["die", "Politikerin", "Politikerinnen", "politician (female)"], ["der", "Handwerker", "Handwerker", "craftsperson (male)"], ["die", "Handwerkerin", "Handwerkerinnen", "craftsperson (female)"], ["der", "Manager", "Manager", "manager (male)"], ["die", "Managerin", "Managerinnen", "manager (female)"], ["der", "Journalist", "Journalisten", "journalist (male)"], ["die", "Journalistin", "Journalistinnen", "journalist (female)"], ["der", "Buchhalter", "Buchhalter", "accountant (male)"], ["die", "Buchhalterin", "Buchhalterinnen", "accountant (female)"], ["der", "Künstler", "Künstler", "artist (male)"], ["die", "Künstlerin", "Künstlerinnen", "artist (female)"], ["der", "Kanzler", "Kanzler", "chancellor (male)"], ["die", "Kanzlerin", "Kanzlerinnen", "chancellor (female)"], ["der", "Berater", "Berater", "consultant (male)"], ["die", "Beraterin", "Beraterinnen", "consultant (female)"], ["der", "Richter", "Richter", "judge (male)"], ["die", "Richterin", "Richterinnen", "judge (female)"], ["der", "Kellner", "Kellner", "waiter"], ["die", "Kellnerin", "Kellnerinnen", "waitress"], ["der", "Dolmetscher", "Dolmetscher", "interpreter (male)"], ["die", "Dolmetscherin", "Dolmetscherinnen", "interpreter (female)"], ["der", "Übersetzer", "Übersetzer", "translator (male)"], ["die", "Übersetzerin", "Übersetzerinnen", "translator (female)"], ["der", "Mechaniker", "Mechaniker", "mechanic (male)"], ["die", "Mechanikerin", "Mechanikerinnen", "mechanic (female)"], ["der", "Techniker", "Techniker", "technician (male)"], ["die", "Technikerin", "Technikerinnen", "technician (female)"], ["der", "Elektriker", "Elektriker", "electrician (male)"], ["die", "Elektrikerin", "Elektrikerinnen", "electrician (female)"], ["der", "Schriftsteller", "Schriftsteller", "writer (male)"], ["die", "Schriftstellerin", "Schriftstellerinnen", "writer (female)"], ["der", "Tänzer", "Tänzer", "dancer (male)"], ["die", "Tänzerin", "Tänzerinnen", "dancer (female)"], ["der", "Architekt", "Architekten", "architect (male)"], ["die", "Architektin", "Architektinnen", "architect (female)"], ["der", "Hausmeister", "Hausmeister", "caretaker/janitor (male)"], ["die", "Hausmeisterin", "Hausmeisterinnen", "caretaker/janitor (female)"], ["der", "Trainer", "Trainer", "coach/trainer (male)"], ["die", "Trainerin", "Trainerinnen", "coach/trainer (female)"], ["der", "Bäcker", "Bäcker", "baker (male)"], ["die", "Bäckerin", "Bäckerinnen", "baker (female)"], ["der", "Chef", "Chefs", "boss (male)"], ["die", "Chefin", "Chefinnen", "boss (female)"], ["der", "Makler", "Makler", "broker/agent (male)"], ["die", "Maklerin", "Maklerinnen", "broker/agent (female)"], ["der", "Sekretär", "Sekretäre", "secretary (male)"], ["die", "Sekretärin", "Sekretärinnen", "secretary (female)"], ["der", "Friseur", "Friseure", "hairdresser (male)"], ["die", "Friseurin", "Friseurinnen", "hairdresser (female)"], ["der", "Kassierer", "Kassierer", "cashier (male)"], ["die", "Kassiererin", "Kassiererinnen", "cashier (female)"], ["der", "Schneider", "Schneider", "tailor (male)"], ["die", "Schneiderin", "Schneiderinnen", "tailor (female)"], ["der", "Postbote", "Postboten", "postman"], ["die", "Postbotin", "Postbotinnen", "postwoman"], ["der", "Apotheker", "Apotheker", "pharmacist (male)"], ["die", "Apothekerin", "Apothekerinnen", "pharmacist (female)"], ["der", "Erzieher", "Erzieher", "kindergarten teacher (male)"], ["die", "Erzieherin", "Erzieherinnen", "kindergarten teacher (female)"], ["der", "Sänger", "Sänger", "singer (male)"], ["die", "Sängerin", "Sängerinnen", "singer (female)"], ["der", "Student", "Studenten", "university student (male)"], ["die", "Studentin", "Studentinnen", "university student (female)"], ["der", "Schüler", "Schüler", "school student (male)"], ["die", "Schülerin", "Schülerinnen", "school student (female)"], ["der", "Hausmann", "Hausmänner", "househusband"], ["die", "Hausfrau", "Hausfrauen", "housewife"], ["die", "Krankenschwester", "Krankenschwestern", "nurse (female)"], ["der", "Krankenpfleger", "Krankenpfleger", "nurse (male)"], ["der", "Feuerwehrmann", "Feuerwehrmänner", "firefighter (male)"], ["die", "Feuerwehrfrau", "Feuerwehrfrauen", "firefighter (female)"], ["der", "Angestellte", "Angestellten", "employee (male)"], ["die", "Angestellte", "Angestellten", "employee (female)"], ["der", "Anwalt", "Anwälte", "lawyer (male)"], ["die", "Anwältin", "Anwältinnen", "lawyer (female)"], ["der", "Koch", "Köche", "cook/chef (male)"], ["die", "Köchin", "Köchinnen", "cook/chef (female)"], ["der", "Kaufmann", "Kaufmänner / Kaufleute", "merchant/businessman"], ["die", "Kauffrau", "Kauffrauen", "merchant/businesswoman"], ["der", "Bauer", "Bauern", "farmer (male)"], ["die", "Bäuerin", "Bäuerinnen", "farmer (female)"], ["der", "Bauarbeiter", "Bauarbeiter", "construction worker (male)"], ["die", "Bauarbeiterin", "Bauarbeiterinnen", "construction worker (female)"]];
+
+let VOICES = [];
+function loadVoices() {
+  return new Promise(resolve => {
+    const voices = speechSynthesis.getVoices();
+    if (voices.length) { VOICES = voices; return resolve(voices); }
+    speechSynthesis.onvoiceschanged = () => { VOICES = speechSynthesis.getVoices(); resolve(VOICES); };
+  });
+}
+
+function pickVoice(langHint) {
+  if (!VOICES.length) return null;
+  let v = VOICES.find(v => v.lang && v.lang.toLowerCase() === langHint.toLowerCase());
+  if (v) return v;
+  v = VOICES.find(v => v.lang && v.lang.toLowerCase().startsWith(langHint.slice(0,2).toLowerCase()));
+  if (v) return v;
+  if (langHint.startsWith('de')) {
+    v = VOICES.find(v => /de/i.test(v.lang||'') && /google|deutsch/i.test(v.name||''));
+    if (v) return v;
+  }
+  return null;
+}
+
+async function speak(text, lang) {
+  await loadVoices();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang || 'de-DE';
+  const voice = pickVoice(u.lang);
+  if (voice) u.voice = voice;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+let hiddenDE = false, hiddenEN = false;
+let current = [...DATA];
+
+function cardTemplate(o, idx) {
+  const article = o[0], singular = o[1], plural = o[2], english = o[3];
+  const pluralPhrase = (plural.startsWith('der ')||plural.startsWith('die ')||plural.startsWith('das ')) ? plural : ('die ' + plural);
+  return `
+  <div class="card" data-idx="${idx}" data-article="${article}">
+    <div class="topline"><span class="badge">${article}</span><span class="word de">${singular}</span></div>
+    <div class="meta de">Plural: ${plural}</div>
+    <div class="row">
+      <button onclick="speak('${article} ${singular}','de-DE')">🔊 DE (sing.)</button>
+      <button onclick="speak('${english}','en-US')">🔊 EN</button>
+    </div>
+    <div class="sep"></div>
+    <div class="word en">${english}</div>
+    <div class="meta en">${article} ${singular} — ${plural}</div>
+    <div class="row">
+      <button onclick="speak('${pluralPhrase}','de-DE')">🔊 DE (plural)</button>
+      <button onclick="speak('${english}','en-GB')">🔊 EN (alt)</button>
+    </div>
+  </div>`;
+}
+
+function render(list) {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = list.map(cardTemplate).join('');
+  grid.classList.toggle('hidden-de', hiddenDE);
+  grid.classList.toggle('hidden-en', hiddenEN);
+}
+
+function matches(row, q) {
+  const s = q.toLowerCase();
+  return row[0].toLowerCase().includes(s) ||
+         row[1].toLowerCase().includes(s) ||
+         row[2].toLowerCase().includes(s) ||
+         row[3].toLowerCase().includes(s);
+}
+
+document.getElementById('search').addEventListener('input', (e)=>{
+  const q = e.target.value.trim();
+  const gender = document.getElementById('genderFilter').value;
+  current = DATA.filter(r => (!q || matches(r,q)) && (!gender || r[0]===gender));
+  render(current);
+});
+document.getElementById('genderFilter').addEventListener('change', (e)=>{
+  const q = document.getElementById('search').value.trim();
+  const gender = e.target.value;
+  current = DATA.filter(r => (!q || matches(r,q)) && (!gender || r[0]===gender));
+  render(current);
+});
+document.getElementById('toggleDE').addEventListener('click', ()=>{ hiddenDE = !hiddenDE; render(current); });
+document.getElementById('toggleEN').addEventListener('click', ()=>{ hiddenEN = !hiddenEN; render(current); });
+document.getElementById('shuffle').addEventListener('click', ()=>{
+  for (let i=current.length-1;i>0;--i) { const j=Math.floor(Math.random()*(i+1)); [current[i],current[j]]=[current[j],current[i]]; }
+  render(current);
+});
+document.getElementById('print').addEventListener('click', ()=> window.print());
+
+document.addEventListener('click', ()=> loadVoices(), { once: true });
+
+render(current);
+</script>
+</body>
+</html>
