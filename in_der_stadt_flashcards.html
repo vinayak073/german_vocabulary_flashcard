@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>In der Stadt – Flashcards (v8-like)</title>
+<style>
+* { box-sizing: border-box; }
+body { font-family: Arial, Helvetica, sans-serif; margin:0; padding:16px; }
+h1 { margin:0 0 10px; }
+.top { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; }
+select, input, button { padding:10px; font-size:14px; }
+.status { display:flex; align-items:center; gap:8px; font-size:13px; }
+.light { width:12px; height:12px; border-radius:50%; background:#999; }
+.light.ready { background:#2ecc71; }
+.grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:12px; margin-top:12px; }
+.card { border:1px solid #000; border-radius:10px; padding:12px; }
+.row { display:flex; gap:8px; margin-top:8px; }
+.meta { font-size:12px; opacity:.8; }
+.badge { display:inline-block; padding:2px 8px; border-radius:6px; color:#fff; font-size:12px; }
+.badge.der { background:#1f6feb; }
+.badge.die { background:#bf3989; }
+.badge.das { background:#2da44e; }
+.hidden-en .en, .hidden-de .de { filter: blur(6px); }
+.controls { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+@media print { .top, .controls { display:none; } .grid { grid-template-columns: repeat(3,1fr); } }
+</style>
+</head>
+<body>
+<h1>In der Stadt — der/die/das • singular & plural • sentences</h1>
+
+<div class="top">
+  <div class="status"><div id="light" class="light ready"></div><div>Ready</div></div>
+  <div style="text-align:right;">
+    <button id="printTop">Print</button>
+  </div>
+  <input id="search" placeholder="Search (de/en)…">
+  <select id="genderFilter">
+    <option value="">All</option>
+    <option value="der">der (masc.)</option>
+    <option value="die">die (fem.)</option>
+    <option value="das">das (neut.)</option>
+  </select>
+  <div>
+    <label>German voice</label>
+    <select id="deVoice"></select>
+    <button id="testDe" style="margin-left:6px;">Test DE</button>
+  </div>
+  <div>
+    <label>English voice</label>
+    <select id="enVoice"></select>
+    <button id="testEn" style="margin-left:6px;">Test EN</button>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="toggleDE">Hide/Show German</button>
+  <button id="toggleEN">Hide/Show English</button>
+  <button id="shuffle">Shuffle</button>
+  <button id="print">Print</button>
+</div>
+
+<div id="grid" class="grid"></div>
+
+<script>
+// article, singular, plural, EN sentence, DE sentence
+const RAW = [
+  ["die","Bäckerei","Bäckereien","Here you can buy fresh bread.","Hier kann man frisches Brot kaufen."],
+  ["die","Bank","Banken","Here you can withdraw or deposit money.","Hier kann man Geld abheben oder einzahlen."],
+  ["die","Apotheke","Apotheken","Here you can buy medicine.","Hier kann man Medikamente kaufen."],
+  ["der","Kiosk","Kioske","Here you can buy newspapers or cigarettes.","Hier kann man Zeitungen oder Zigaretten kaufen."],
+  ["der","Supermarkt","Supermärkte","Here you can buy groceries.","Hier kann man Lebensmittel kaufen."],
+  ["die","Bücherei","Büchereien","Here you can find many books.","Hier kann man viele Bücher finden."],
+  ["die","Bibliothek","Bibliotheken","Here you can find many books.","Hier kann man viele Bücher finden."],
+  ["der","Bahnhof","Bahnhöfe","Many trains arrive here daily.","Hier kommen täglich viele Züge an."],
+  ["das","Restaurant","Restaurants","Here you can go to eat.","Hier kann man essen gehen."],
+  ["das","Hotel","Hotels","Here you can stay overnight.","Hier kann man übernachten."],
+  ["die","Metzgerei","Metzgereien","Here you can buy meat.","Hier kann man Fleisch kaufen."],
+  ["die","Post","Postämter","Here you can send letters.","Hier kann man Briefe abschicken."],
+  ["das","Kino","Kinos","Here you can watch movies.","Hier kann man Filme sehen."],
+  ["das","Stadion","Stadien","Here you can see football matches.","Hier kann man Fußballspiele sehen."],
+  ["das","Theater","Theater","Here you can watch a play.","Hier kann man Theaterstücke sehen."],
+  ["der","Zoo","Zoos","Here you can see many animals.","Hier kann man viele Tiere sehen."],
+  ["das","Krankenhaus","Krankenhäuser","You find many patients here / get medical care.","Hier findet man viele Patienten."],
+  ["der","Blumenladen","Blumenläden","Here you can buy flowers.","Hier kann man Blumen kaufen."],
+  ["der","Flughafen","Flughäfen","Here you can see airplanes / travel by air.","Hier sieht man Flugzeuge."],
+  ["der","Park","Parks","Here you can go for a walk.","Hier kann man spazieren gehen."],
+  ["die","Bushaltestelle","Bushaltestellen","Buses stop here.","Hier halten Busse an."],
+  ["die","Schule","Schulen","Here you go to learn.","Hier geht man zum Lernen."],
+  ["die","Universität","Universitäten","Here you can study.","Hier kann man studieren."],
+  ["der","Buchladen","Buchläden","Here you can buy books.","Hier kann man Bücher kaufen."],
+  ["die","Kneipe","Kneipen","Here you can drink alcohol.","Hier kann man Alkohol trinken."],
+  ["das","Fitnesszentrum","Fitnesszentren","Here you go to stay fit.","Hier geht man, um fit zu bleiben."],
+  ["das","Schwimmbad","Schwimmbäder","Here you can swim.","Hier kann man schwimmen."],
+  ["das","Reisebüro","Reisebüros","Here you can book travels.","Hier kann man Reisen buchen."]
+];
+
+let VOICES=[];
+const deSel=document.getElementById('deVoice');
+const enSel=document.getElementById('enVoice');
+
+function loadVoices() { return new Promise(res=>{ const v=speechSynthesis.getVoices(); if(v.length) res(v); else speechSynthesis.onvoiceschanged=()=>res(speechSynthesis.getVoices()); }); }
+function pickVoice(sel) { const [n,l]=(sel.value||'|').split('|'); return VOICES.find(v=>v.name===n&&v.lang===l)||null; }
+function speak(text, sel, lang) { const u=new SpeechSynthesisUtterance(text); const v=pickVoice(sel); if(v){u.voice=v;u.lang=v.lang;} else u.lang=lang; speechSynthesis.cancel(); speechSynthesis.speak(u); }
+
+function fillVoiceSelects(){
+  const mk=v=>`<option value="${v.name}|${v.lang}">${v.name} [${v.lang}]</option>`;
+  const de=VOICES.filter(v=>/^de(-|$)/i.test(v.lang));
+  const en=VOICES.filter(v=>/^en(-|$)/i.test(v.lang));
+  deSel.innerHTML=de.map(mk).join('')||'<option>No German voices</option>';
+  enSel.innerHTML=en.map(mk).join('')||'<option>No English voices</option>';
+  if(de.length) deSel.value=`${de[0].name}|${de[0].lang}`; if(en.length) enSel.value=`${en[0].name}|${en[0].lang}`;
+}
+
+function esc(t){return (t||'').replace(/'/g,"\\'");}
+
+function card([art,sg,pl,enSent,deSent]){
+  const plural=pl==='-'?'<em>— (no plural)</em>':pl;
+  return `<div class="card">
+    <div><span class="badge ${art}">${art}</span> <strong class="de">${sg}</strong></div>
+    <div class="meta de">Plural: ${plural}</div>
+    <div class="en">${enSent}</div>
+    <div class="de">${deSent}</div>
+    <div class="row">
+      <button onclick="speak('${esc(art+' '+sg)}', deSel, 'de-DE')">🔊 DE</button>
+      ${pl&&pl!=='-'?`<button onclick="speak('${esc((pl.startsWith('der')||pl.startsWith('die')||pl.startsWith('das'))?pl:('die '+pl))}', deSel, 'de-DE')">🔊 DE (plural)</button>`:''}
+      <button onclick="speak('${esc(enSent)}', enSel, 'en-US')">🔊 EN</button>
+    </div>
+  </div>`;
+}
+
+let current=[...RAW];
+function render(){ document.getElementById('grid').innerHTML=current.map(card).join(''); }
+function matches(row,q){ const [a,s,p,en,de]=row; const t=(a+' '+s+' '+p+' '+en+' '+de).toLowerCase(); return t.includes(q.toLowerCase()); }
+
+document.getElementById('search').addEventListener('input',e=>{const q=e.target.value.trim(); const g=document.getElementById('genderFilter').value; current=RAW.filter(r=>(!q||matches(r,q))&&(!g||r[0]===g)); render();});
+document.getElementById('genderFilter').addEventListener('change',e=>{const q=document.getElementById('search').value.trim(); const g=e.target.value; current=RAW.filter(r=>(!q||matches(r,q))&&(!g||r[0]===g)); render();});
+document.getElementById('toggleDE').addEventListener('click',()=>document.body.classList.toggle('hidden-de'));
+document.getElementById('toggleEN').addEventListener('click',()=>document.body.classList.toggle('hidden-en'));
+document.getElementById('shuffle').addEventListener('click',()=>{current.sort(()=>Math.random()-0.5); render();});
+document.getElementById('print').addEventListener('click',()=>window.print());
+document.getElementById('printTop').addEventListener('click',()=>window.print());
+document.getElementById('testDe').addEventListener('click',()=>speak('Guten Tag! In der Stadt.', deSel, 'de-DE'));
+document.getElementById('testEn').addEventListener('click',()=>speak('Hello! In the city.', enSel, 'en-US'));
+
+document.addEventListener('click',()=>{ loadVoices().then(v=>{ VOICES=v; fillVoiceSelects(); }); }, {once:true});
+render();
+</script>
+</body>
+</html>

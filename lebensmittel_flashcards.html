@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lebensmittel – Flashcards (v8-like)</title>
+<style>
+* { box-sizing: border-box; }
+body { font-family: Arial, Helvetica, sans-serif; margin:0; padding:16px; }
+h1 { margin:0 0 10px; }
+.top { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; }
+select, input, button { padding:10px; font-size:14px; }
+.status { display:flex; align-items:center; gap:8px; font-size:13px; }
+.light { width:12px; height:12px; border-radius:50%; background:#999; }
+.light.ready { background:#2ecc71; }
+.grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:12px; margin-top:12px; }
+.card { border:1px solid #000; border-radius:10px; padding:12px; }
+.row { display:flex; gap:8px; margin-top:8px; }
+.meta { font-size:12px; opacity:.8; }
+.badge { display:inline-block; padding:2px 8px; border-radius:6px; color:#fff; font-size:12px; }
+.badge.der { background:#1f6feb; }
+.badge.die { background:#bf3989; }
+.badge.das { background:#2da44e; }
+.hidden-en .en, .hidden-de .de { filter: blur(6px); }
+.controls { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+@media print { .top, .controls { display:none; } .grid { grid-template-columns: repeat(3,1fr); } }
+</style>
+</head>
+<body>
+<h1>Lebensmittel — der/die/das • singular & plural</h1>
+
+<div class="top">
+  <div class="status"><div id="light" class="light ready"></div><div>Ready</div></div>
+  <div style="text-align:right;">
+    <button id="printTop">Print</button>
+  </div>
+  <input id="search" placeholder="Search (de/en)…">
+  <select id="genderFilter">
+    <option value="">All</option>
+    <option value="der">der (masc.)</option>
+    <option value="die">die (fem.)</option>
+    <option value="das">das (neut.)</option>
+  </select>
+  <div>
+    <label>German voice</label>
+    <select id="deVoice"></select>
+    <button id="testDe" style="margin-left:6px;">Test DE</button>
+  </div>
+  <div>
+    <label>English voice</label>
+    <select id="enVoice"></select>
+    <button id="testEn" style="margin-left:6px;">Test EN</button>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="toggleDE">Hide/Show German</button>
+  <button id="toggleEN">Hide/Show English</button>
+  <button id="shuffle">Shuffle</button>
+  <button id="print">Print</button>
+</div>
+
+<div id="grid" class="grid"></div>
+
+<script>
+const RAW = [["das", "Brot", "Brote", "bread", "Compound -brot is usually neuter."], ["das", "Brötchen", "Brötchen", "bread roll", "-chen diminutive → always neuter."], ["der", "Apfel", "Äpfel", "apple", "Umlaut in plural is common on monosyllables."], ["die", "Banane", "Bananen", "banana", "-e (two syllables) often → feminine."], ["die", "Orange", "Orangen", "orange", "Loanwords with -e often feminine."], ["die", "Zitrone", "Zitronen", "lemon", "Fruits ending in -e are commonly feminine."], ["die", "Birne", "Birnen", "pear", ""], ["die", "Traube", "Trauben", "grape", ""], ["die", "Erdbeere", "Erdbeeren", "strawberry", "All berries ending in -beere are feminine."], ["die", "Kirsche", "Kirschen", "cherry", ""], ["die", "Tomate", "Tomaten", "tomato", ""], ["die", "Gurke", "Gurken", "cucumber", ""], ["die", "Kartoffel", "Kartoffeln", "potato", ""], ["die", "Zwiebel", "Zwiebeln", "onion", ""], ["der", "Knoblauch", "-", "garlic", "Mass noun; usually no plural."], ["die", "Karotte", "Karotten", "carrot", "= die Möhre (northern vs. southern)."], ["der", "Salat", "Salate", "lettuce / salad", "-salat compounds are masculine."], ["der", "Spinat", "-", "spinach", "Mass noun; no plural."], ["der", "Pilz", "Pilze", "mushroom", ""], ["das", "Gemüse", "-", "vegetables", "Collective/mass noun; no plural."], ["das", "Obst", "-", "fruit", "Collective/mass noun; no plural."], ["die", "Nudel", "Nudeln", "noodle / pasta", "Plural Nudeln = pasta."], ["das", "Ei", "Eier", "egg", "Irregular plural with -er + Umlaut appears on some neuters."], ["das", "Hähnchen", "Hähnchen", "chicken (meat)", "-chen diminutive → neuter; animal meat is neuter."], ["das", "Rindfleisch", "-", "beef", "-fleisch (meat) is neuter."], ["das", "Schweinefleisch", "-", "pork", ""], ["der", "Fisch", "Fische", "fish", ""], ["die", "Wurst", "Würste", "sausage", "Many -urst → plurals with Umlaut + -e."], ["der", "Käse", "-", "cheese", "Mass noun; no plural."], ["die", "Milch", "-", "milk", "Mass noun; no plural."], ["der", "Joghurt", "Joghurts", "yogurt", "Loanwords can take -s plural."], ["die", "Butter", "-", "butter", "Mass noun; no plural."], ["die", "Sahne", "-", "cream", ""], ["das", "Öl", "Öle", "oil", ""], ["das", "Salz", "Salze", "salt", "Usually mass; plural appears in chemistry."], ["der", "Zucker", "-", "sugar", "Mass noun; no plural."], ["der", "Pfeffer", "-", "pepper", "Mass noun; no plural."], ["das", "Wasser", "-", "water", "Mass noun; no plural in everyday use."], ["der", "Saft", "Säfte", "juice", "-saft compounds are masculine."], ["die", "Limonade", "Limonaden", "lemonade / soda", ""], ["die", "Cola", "Colas", "cola", ""], ["der", "Kaffee", "Kaffees", "coffee", ""], ["der", "Tee", "Tees", "tea", ""], ["das", "Bier", "Biere", "beer", ""], ["der", "Wein", "Weine", "wine", ""], ["die", "Marmelade", "Marmeladen", "jam", ""], ["der", "Honig", "-", "honey", "Mass noun; no plural."], ["der", "Quark", "-", "quark (fresh cheese)", "Mass noun; no plural."], ["die", "Suppe", "Suppen", "soup", ""], ["der", "Kuchen", "Kuchen", "cake", "Many -en masculine nouns have unchanged plural."], ["die", "Torte", "Torten", "cream cake", ""], ["das", "Eis", "-", "ice cream", "Mass noun; no plural."], ["der", "Keks", "Kekse", "biscuit / cookie", ""], ["das", "Bonbon", "Bonbons", "candy", ""], ["die", "Schokolade", "Schokoladen", "chocolate", "Often mass; plural for kinds."], ["das", "Müsli", "-", "muesli / cereal", "Often used as mass."], ["die", "Cornflakes", "-", "cornflakes", "Plural‑only word."], ["das", "Mehl", "-", "flour", "Mass noun; no plural."], ["die", "Soße", "Soßen", "sauce / gravy", "Also spelled Sauce (fr.)."], ["die", "Pommes frites", "-", "French fries", "Plural‑only word."], ["das", "Sandwich", "Sandwiches", "sandwich", "Loanword → -es plural."], ["der", "Hamburger", "Hamburger", "hamburger", "Unchanged plural."], ["das", "Frühstück", "Frühstücke", "breakfast", ""], ["der", "Aufschnitt", "-", "cold cuts", "Collective; no plural."], ["der", "Schinken", "Schinken", "ham", ""], ["das", "Joghurtgetränk", "Joghurtgetränke", "yogurt drink", "Compound neuter (-getränk)."], ["der", "Apfelsaft", "Säfte", "apple juice", "Compound of Saft → masculine; plural Säfte."]];
+let VOICES=[];
+const deSel=document.getElementById('deVoice');
+const enSel=document.getElementById('enVoice');
+
+function loadVoices() { return new Promise(res=>{ const v=speechSynthesis.getVoices(); if(v.length) res(v); else speechSynthesis.onvoiceschanged=()=>res(speechSynthesis.getVoices()); }); }
+function pickVoice(sel) { const [n,l]=(sel.value||'|').split('|'); return VOICES.find(v=>v.name===n&&v.lang===l)||null; }
+function speak(text, sel, lang) { const u=new SpeechSynthesisUtterance(text); const v=pickVoice(sel); if(v){u.voice=v;u.lang=v.lang;} else u.lang=lang; speechSynthesis.cancel(); speechSynthesis.speak(u); }
+
+function fillVoiceSelects(){
+  const mk=v=>`<option value="${v.name}|${v.lang}">${v.name} [${v.lang}]</option>`;
+  const de=VOICES.filter(v=>/^de(-|$)/i.test(v.lang));
+  const en=VOICES.filter(v=>/^en(-|$)/i.test(v.lang));
+  deSel.innerHTML=de.map(mk).join('')||'<option>No German voices</option>';
+  enSel.innerHTML=en.map(mk).join('')||'<option>No English voices</option>';
+  if(de.length) deSel.value=`${de[0].name}|${de[0].lang}`; if(en.length) enSel.value=`${en[0].name}|${en[0].lang}`;
+}
+
+function esc(t){return (t||'').replace(/'/g,"\'");}
+
+function card([art,sg,pl,en,note]){
+  const plural=pl==='-'?'<em>— (mass/collective)</em>':pl;
+  return `<div class="card">
+    <div><span class="badge ${art}">${art}</span> <strong class="de">${sg}</strong></div>
+    <div class="meta de">Plural: ${plural}</div>
+    <div class="en">${en}</div>
+    ${note?`<div class="meta">${note}</div>`:''}
+    <div class="row">
+      <button onclick="speak('${esc(art+' '+sg)}', deSel, 'de-DE')">🔊 DE</button>
+      ${pl&&pl!=='-'?`<button onclick="speak('${esc((pl.startsWith('der')||pl.startsWith('die')||pl.startsWith('das'))?pl:('die '+pl))}', deSel, 'de-DE')">🔊 DE (plural)</button>`:''}
+      <button onclick="speak('${esc(en)}', enSel, 'en-US')">🔊 EN</button>
+    </div>
+  </div>`;
+}
+
+let current=[...RAW];
+function render(){ document.getElementById('grid').innerHTML=current.map(card).join(''); }
+function matches(row,q){ const [a,s,p,e]=row; const t=(a+' '+s+' '+p+' '+e).toLowerCase(); return t.includes(q.toLowerCase()); }
+
+document.getElementById('search').addEventListener('input',e=>{const q=e.target.value.trim(); const g=document.getElementById('genderFilter').value; current=RAW.filter(r=>(!q||matches(r,q))&&(!g||r[0]===g)); render();});
+document.getElementById('genderFilter').addEventListener('change',e=>{const q=document.getElementById('search').value.trim(); const g=e.target.value; current=RAW.filter(r=>(!q||matches(r,q))&&(!g||r[0]===g)); render();});
+document.getElementById('toggleDE').addEventListener('click',()=>document.body.classList.toggle('hidden-de'));
+document.getElementById('toggleEN').addEventListener('click',()=>document.body.classList.toggle('hidden-en'));
+document.getElementById('shuffle').addEventListener('click',()=>{current.sort(()=>Math.random()-0.5); render();});
+document.getElementById('print').addEventListener('click',()=>window.print());
+document.getElementById('printTop').addEventListener('click',()=>window.print());
+document.getElementById('testDe').addEventListener('click',()=>speak('Guten Tag! Lebensmittel.', deSel, 'de-DE'));
+document.getElementById('testEn').addEventListener('click',()=>speak('Hello! Groceries.', enSel, 'en-US'));
+
+document.addEventListener('click',()=>{ loadVoices().then(v=>{ VOICES=v; fillVoiceSelects(); }); }, {once:true});
+render();
+</script>
+</body>
+</html>
