@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Audio HTML – English & German Topics</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #22c55e;
+      --accent2: #60a5fa;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+      background: linear-gradient(180deg, var(--bg), #000);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    header {
+      padding: 24px 16px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(22px, 4vw, 32px);
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    header p { margin: 0; color: var(--muted); }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+      gap: 12px;
+      margin: 18px auto 0;
+      max-width: 1100px;
+      padding: 0 16px;
+    }
+    .control-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    label { font-size: 14px; color: var(--muted); display:block; margin-bottom: 6px;}
+    select, input[type="range"] {
+      width: 100%;
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 10px;
+      outline: none;
+    }
+    input[type="range"] { padding: 0; height: 34px; }
+    .container {
+      max-width: 1100px;
+      margin: 18px auto 64px;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+    }
+    .topic-title {
+      margin: 0 0 10px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .lang {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .text {
+      white-space: pre-wrap;
+      margin: 8px 0 12px;
+      font-size: 14px;
+    }
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: #0b1220;
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    button.play-en { border-color: rgba(34,197,94,0.6); }
+    button.play-de { border-color: rgba(96,165,250,0.6); }
+    button.stop { border-color: rgba(244,63,94,0.6); }
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 24px 16px 48px;
+    }
+    .note { color: var(--muted); font-size: 13px; margin-top: 8px; }
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: #0b1220;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      font-size: 12px;
+      padding: 2px 6px;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Speak the Topics – English & German</h1>
+    <p>Choose voices below. Click “Play English” or “Play German” on any card to hear the text.</p>
+    <div class="controls">
+      <div class="control-card">
+        <label for="voice-en">English voice</label>
+        <select id="voice-en"></select>
+        <div class="note">Tip: pick an <span class="kbd">en-*</span> voice.</div>
+      </div>
+      <div class="control-card">
+        <label for="voice-de">German voice</label>
+        <select id="voice-de"></select>
+        <div class="note">Tip: pick a <span class="kbd">de-*</span> voice.</div>
+      </div>
+      <div class="control-card">
+        <label for="rate">Speech speed (0.7–1.4)</label>
+        <input id="rate" type="range" min="0.7" max="1.4" step="0.05" value="1">
+      </div>
+      <div class="control-card">
+        <label for="pitch">Pitch (0.8–1.2)</label>
+        <input id="pitch" type="range" min="0.8" max="1.2" step="0.05" value="1">
+      </div>
+    </div>
+  </header>
+
+  <main class="container" id="cards"></main>
+
+  <footer>
+    <p>If no sound plays, try a different browser (Chrome works best) or reload after the page fully loads voices.</p>
+  </footer>
+
+<script>
+const topics = [
+  {
+    title: "Meine Vorstellung / My Introduction",
+    en: `My name is Vinayak, and I come from Bangalore, India. For the last 3 years, I have been living in Friedrichshafen.
+
+I am a 30-year-old married man. I have a 3-year-old boy. My Wife is also 30 years old. All of us stay in the same house.
+
+I have no job currently. I am searching for a new job. Finding a job is stressful and frustrating. But this time I enjoy playing with my son and learning new technology.
+
+In our free time, all 3 of us go to the park and spend some time there. My son loves to play in the park.`,
+    de: `Mein Name ist Vinayak und ich komme aus Bangalore, Indien. Seit drei Jahren lebe ich in Friedrichshafen.
+
+Ich bin 30 Jahre alt, verheiratet und habe einen dreijährigen Sohn. Meine Frau ist ebenfalls 30 Jahre alt. Wir leben alle zusammen in einem Haus.
+
+Derzeit bin ich arbeitslos. Ich bin auf der Suche nach einem neuen Job. Die Jobsuche ist stressig und frustrierend. Aber diesmal genieße ich es, mit meinem Sohn zu spielen und mich mit neuen Technologien zu beschäftigen.
+
+In unserer Freizeit gehen wir alle drei in den Park und verbringen dort etwas Zeit. Mein Sohn liebt es, im Park zu spielen.`
+  },
+  {
+    title: "Meine Hobbys / My Hobbies",
+    en: `In my free time, I go to the park with my son and play with him. I love reading books, watching Netflix, and keeping up to date on Indian politics.
+
+I like to play cricket, but in Germany people don't play it much, so I hardly get a chance to play. I go for a walk every weekend and play badminton.`,
+    de: `In meiner Freizeit gehe ich mit meinem Sohn in den Park und spiele mit ihm. Ich liebe es, Bücher zu lesen, Netflix zu schauen und mich über die indische Politik auf dem Laufenden zu halten.
+
+Ich spiele gerne Cricket, aber in Deutschland wird es nicht so oft gespielt, sodass ich kaum Gelegenheit dazu habe. Ich gehe jedes Wochenende spazieren und spiele Badminton.`
+  },
+  {
+    title: "Mein Lieblingssport ist Cricket",
+    en: `Cricket is my favourite sport, and Virat Kohli is my favourite player.
+
+Cricket has three formats: Test Format, ODI Format and T20 Format.
+
+Test Cricket is for 5 days, ODI is 100 overs game, and T20 is 40 overs game. 1 over is 6 times bowling
+
+International teams play in the ICC league, and Local teams play in the IPL.
+
+IPL is a cricket league that takes place in India, which occurs every year.`,
+    de: `Cricket ist mein Lieblingssport und Virat Kohli ist mein Lieblingsspieler.
+
+Cricket gibt es in drei Formaten: Testformat, ODI-Format und T20-Format.
+
+Test Cricket dauert 5 Tage, ODI ist ein 100-Over-Spiel und T20 ist ein 40-Over-Spiel. 1 Over entspricht 6 Würfen.
+
+Internationale Teams spielen in der ICC-Liga und lokale Teams spielen in der IPL.
+
+Die IPL ist eine Cricket-Liga, die in Indien stattfindet und jedes Jahr ausgetragen wird.`
+  },
+  {
+    title: "Meine Wohnung / My Apartment",
+    en: `I live in Friedrichshafen, Germany. I have rented a big house. My house is white and big.
+
+My apartment is on the 1st floor. It has a living room, a working room, and a sleeping room. Kitchen, Bathroom and toilet. The kitchen, living room, working room, and sleeping room have big windows.
+
+Outside the sleeping room, there is a big balcony.  My sleep room is so big that my son always likes to play there. We all three sleep in the sleeping room.
+
+In the working room, I have a small office set up. I work and study there.
+
+In the living room, we use it as a dining room, because the Dining table is placed there.
+
+Overall all my house is 91m2, and 1400 Euros is the rent, the house is beautiful, but the rent is too expensive`,
+    de: `Ich wohne in Friedrichshafen, Deutschland. Ich habe ein großes Haus gemietet. Mein Haus ist weiß und groß.
+
+Meine Wohnung befindet sich im 1. Stock. Sie hat ein Wohnzimmer, ein Arbeitszimmer und ein Schlafzimmer. Küche, Bad und Toilette. Die Küche, das Wohnzimmer, das Arbeitszimmer und das Schlafzimmer haben große Fenster.
+
+Vor dem Schlafzimmer befindet sich ein großer Balkon.  Mein Schlafzimmer ist so groß, dass mein Sohn gerne dort spielt. Wir schlafen alle drei im Schlafzimmer.
+
+Im Arbeitszimmer habe ich ein kleines Büro eingerichtet. Dort arbeite und lerne ich.
+
+Das Wohnzimmer nutzen wir als Esszimmer, da dort der Esstisch steht.
+
+Insgesamt ist mein Haus 91 m² groß und die Miete beträgt 1400 Euro. Das Haus ist wunderschön, aber die Miete ist zu teuer.`
+  },
+  {
+    title: "Mein Land / My Country",
+    en: `India is my country. It has 28 states. I come from the state called Karnataka. In India, we speak many languages, my mother tongue is Kannada, which is one of the oldest languages in India. But in Indian official communication, the language is Hindi. I can also speak Hindi
+
+India's capital city is Delhi, the largest and one of the most polluted cities, but I come from Bangalore, called the Silicon Valley of India.
+
+I love Bangalore, also known as the Garden City of India. I started my work career in Bangalore, and so is the city of dreams.
+
+I have a house in Bangalore with 2 rooms, a living room, a kitchen, a bath, and a toilet. I miss my home.
+
+I studied at the BVB University in Hubli, Karnataka, which is the city where my wife comes from. I have spent the beautiful 4 years of my life in Hubli, and it is the place where I met my wife for the first time`,
+    de: `Indien ist mein Land. Es hat 28 Bundesstaaten. Ich komme aus dem Bundesstaat Karnataka. In Indien sprechen wir viele Sprachen, meine Muttersprache ist Kannada, eine der ältesten Sprachen Indiens. In der offiziellen Kommunikation Indiens wird jedoch Hindi gesprochen. Ich spreche auch Hindi.
+
+Die Hauptstadt Indiens ist Delhi, die größte und eine der am stärksten verschmutzten Städte, aber ich komme aus Bangalore, das als Silicon Valley Indiens bezeichnet wird.
+
+Ich liebe Bangalore, das auch als Gartenstadt Indiens bekannt ist. Ich habe meine berufliche Laufbahn in Bangalore begonnen, und so ist es auch die Stadt meiner Träume.
+
+Ich habe ein Haus in Bangalore mit zwei Zimmern, einem Wohnzimmer, einer Küche, einem Bad und einer Toilette. Ich vermisse mein Zuhause.
+
+Ich habe an der BVB-Universität in Hubli, Karnataka, studiert, der Stadt, aus der meine Frau stammt. Ich habe vier wunderschöne Jahre meines Lebens in Hubli verbracht, und dort habe ich meine Frau zum ersten Mal getroffen.`
+  },
+  {
+    title: "Meine Familie / My Family",
+    en: `In Germany, I live with my wife and son. But India, my sisters and parents stay.
+
+My mother is a housewife, and my father is retired. They stay in a Place called Bailhongal. It is the place where I completed my school.
+
+My elder sister is an Agriculture officer, she is married and has no children. Her husband is an Engineer and works as a Mechanical Engineer.
+
+My first younger sister is a teacher, she is married to my wife's brother. She has 2 children: a boy and a girl. The boy is 6 years old and the girl is 1 year old. Her husband works in the Indian Railways as a technician.
+
+My last sister is an Engineer, she works in Mumbai at Reliance Platforms. She is not married yet, but next year she will be.
+
+My wife is a housewife, she has studied Engineering, but to take care of our son, she is not working currently. My son is 3 years. He go to Kindergarten and she speak English`,
+    de: `In Deutschland lebe ich mit meiner Frau und meinem Sohn. Aber in Indien leben meine Schwestern und meine Eltern.
+
+Meine Mutter ist Hausfrau und mein Vater ist im Ruhestand. Sie leben in einem Ort namens Bailhongal. Dort habe ich meine Schulausbildung abgeschlossen.
+
+Meine ältere Schwester ist Landwirtschaftsbeamtin, sie ist verheiratet und hat keine Kinder. Ihr Mann ist Ingenieur und arbeitet als Maschinenbauingenieur.
+
+Meine erste jüngere Schwester ist Lehrerin und mit dem Bruder meiner Frau verheiratet. Sie hat zwei Kinder: einen Jungen und ein Mädchen. Der Junge ist sechs Jahre alt und das Mädchen ein Jahr. Ihr Mann arbeitet als Techniker bei der indischen Eisenbahn.
+
+Meine jüngste Schwester ist Ingenieurin und arbeitet in Mumbai bei Reliance Platforms. Sie ist noch nicht verheiratet, wird aber nächstes Jahr heiraten.
+
+Meine Frau ist Hausfrau. Sie hat Ingenieurwesen studiert, arbeitet aber derzeit nicht, um sich um unseren Sohn zu kümmern. Mein Sohn ist 3 Jahre alt. Er geht in den Kindergarten und spricht Englisch.`
+  },
+  {
+    title: "Mein Tag / My Day",
+    en: `I wake up at 6 am every day. I brush my teeth and do exercise for 20 minutes. Then I take a bath and get ready for my German Class.
+
+Every other day, I have German class from 7 am to 9 am. The day when I don't have German Class, I will do German homework or practice German.
+
+Then I will have breakfast and then get ready for Data Science class. This Data Science class is from 10 am to 5 PM. It's so long and stressful. But to get a job, I should do it.
+
+Then from 5:30 pm to 7 pm, it's time for my some. I play with him and take him to the Garden to play. He enjoys this time.
+
+Then at 8 PM, I will have dinner and start my remaining work for the Data Science course, and by 10 PM, I will go to bed.`,
+    de: `Ich stehe jeden Tag um 6 Uhr morgens auf. Ich putze mir die Zähne und mache 20 Minuten lang Sport. Dann dusche ich und mache mich für meinen Deutschunterricht fertig.
+
+Jeden zweiten Tag habe ich von 7 bis 9 Uhr Deutschunterricht. An den Tagen, an denen ich keinen Deutschunterricht habe, mache ich meine Deutschhausaufgaben oder übe Deutsch.
+
+Danach frühstücke ich und mache mich für den Data-Science-Kurs fertig. Dieser Data-Science-Kurs dauert von 10 bis 17 Uhr. Er ist sehr lang und anstrengend. Aber um einen Job zu bekommen, muss ich das machen.
+
+Von 17:30 bis 19 Uhr ist dann Zeit für meinen Hund. Ich spiele mit ihm und gehe mit ihm in den Garten, um zu spielen. Er genießt diese Zeit.
+
+Um 20 Uhr esse ich zu Abend und mache meine restlichen Aufgaben für den Data-Science-Kurs, und um 22 Uhr gehe ich ins Bett.`
+  },
+  {
+    title: "Meine Stadt / My City",
+    en: `I stay in Friedrichshafen, Germany. It is in the southern Part of Germany. It is from the state called Baden-Württemberg.
+
+It has a part of late Constance. Lake Konstanz is the lake that joins Germany, Austria, and Switzerland.
+
+Friedrichshafen is a small city. It has a bus stop, a train station, a ferry stop and an Airport. It has a city administration office and some Automotive offices.
+
+It is a small city with a beautiful view of the lake, but the nightlife in Friedrichshafen is not that Great.
+
+Every year in Friedrichshafen, a festival called See Hassenfest takes place. I love going there and having some beers with friends. Those 3 days were a lot of fun in Friedrichshafen.`,
+    de: `Ich wohne in Friedrichshafen, Deutschland. Die Stadt liegt im Süden Deutschlands, im Bundesland Baden-Württemberg.
+
+Ein Teil der Stadt gehört zum Landkreis Konstanz. Der Bodensee ist ein See, der Deutschland, Österreich und die Schweiz verbindet.
+
+Friedrichshafen ist eine kleine Stadt. Es gibt eine Bushaltestelle, einen Bahnhof, eine Fähranlegestelle und einen Flughafen. Außerdem gibt es ein Stadtverwaltungsamt und einige Automobilunternehmen.
+
+Es ist eine kleine Stadt mit einer wunderschönen Aussicht auf den See, aber das Nachtleben in Friedrichshafen ist nicht so toll.
+
+Jedes Jahr findet in Friedrichshafen ein Festival namens See Hassenfest statt. Ich liebe es, dorthin zu gehen und mit Freunden ein paar Bier zu trinken. Diese drei Tage in Friedrichshafen haben mir viel Spaß gemacht.`
+  },
+  {
+    title: "Meine Arbeit / My Work",
+    en: `Currently, I am not working, but when I came to Germany in 2022, I was working for ZF in Friedrichshafen as an ANÜ employee.
+
+I enjoyed working in Germany. I came here as an Integration tester, but within 3 months, I got the chance to be a Test Manager, where I had many opportunities to learn.
+
+As Test Manager, I was managing four testing teams in India and Pilsen. I used to speak English with them, and even my customers were speaking English. So I did not have much of a chance to learn German.
+
+I was in a technical and Management role and enjoyed it a lot. Unfortunately, due to business issues, I lost my job`,
+    de: `Derzeit bin ich nicht berufstätig, aber als ich 2022 nach Deutschland kam, arbeitete ich als ANÜ-Mitarbeiter bei ZF in Friedrichshafen.
+
+Die Arbeit in Deutschland hat mir Spaß gemacht. Ich kam als Integrationstester hierher, aber innerhalb von drei Monaten bekam ich die Chance, Testmanager zu werden, wo ich viele Gelegenheiten zum Lernen hatte.
+
+Als Testmanager leitete ich vier Testteams in Indien und Pilsen. Ich sprach mit ihnen Englisch, und auch meine Kunden sprachen Englisch. Daher hatte ich nicht viele Gelegenheiten, Deutsch zu lernen.
+
+Ich hatte eine technische und leitende Position inne und habe diese Arbeit sehr genossen. Leider habe ich aufgrund geschäftlicher Probleme meinen Job verloren.`
+  },
+  {
+    title: "Mein erster Tag in Deutschland / My first day in Germany",
+    en: `Germany is the first foreign country I have visited. The first day, it was strange for me; I was not aware of where to go or what to do. Luckily, I had a friend in Frankfurt who picked me up and hosted me for the night.
+
+The next day, I was supposed to travel to Friedrichshafen. I did not know how to buy tickets, so some locals helped me.
+
+I travelled for two and a half hours and reached Stuttgart. Where I found another friend, I greeted her and started my travel to Friedrichshafen. After 2.5 hours, I reached Friedrichshafen.
+
+I had a friend in Friedrichshafen who picked me up and dropped me off at my destination. He helped me financially initially and helped me settle in Friedrichshafen.`,
+    de: `Deutschland ist das erste fremde Land, das ich besucht habe. Der erste Tag war seltsam für mich; ich wusste nicht, wohin ich gehen oder was ich tun sollte. Glücklicherweise hatte ich einen Freund in Frankfurt, der mich abholte und mich für die Nacht beherbergte.
+
+Am nächsten Tag sollte ich nach Friedrichshafen reisen. Ich wusste nicht, wie man Fahrkarten kauft, also halfen mir einige Einheimische.
+
+Nach zweieinhalb Stunden Fahrt kam ich in Stuttgart an. Dort traf ich eine weitere Freundin, begrüßte sie und setzte meine Reise nach Friedrichshafen fort. Nach weiteren zweieinhalb Stunden erreichte ich Friedrichshafen.
+
+Ein Freund in Friedrichshafen holte mich ab und brachte mich an mein Ziel. Er half mir zunächst finanziell und unterstützte mich dabei, mich in Friedrichshafen einzuleben.`
+  },
+  {
+    title: "Meine Universität / My University",
+    en: `When I was working, I was also doing my part-time studies, and I am still studying.
+
+I am studying in International Management and Leadership. In September 2023, I joined studies, and I am in the final stage of my studies. I am writing my master's thesis. I was supposed to complete it, but because of my job situation, I extended it.
+
+This master's helped me a lot and boosted my confidence. It taught me about business, Management, Critical Thinking, problem-solving, and many more things.
+
+My university is in Dornbirn, Austria, and it's called FHV Vorarlberg. It's the University of Applied Science.
+
+My study was in the English language with 4 semesters, and there were 20 students in class. Our lessons were in person, and we needed to travel to the University every weekend.
+
+Travelling from Friedrichshafen to Dorbirn was 1 hour approx and needed to change 1 train. If the connection is missed, then we need to wait for 30 minutes. I travelled every week to  Dornbirn for my University. It was so stressful. But still I use to enjoy the challenge`,
+    de: `Während meiner Arbeit habe ich nebenbei studiert und studiere immer noch.
+
+Ich studiere Internationales Management und Leadership. Im September 2023 habe ich mein Studium aufgenommen und befinde mich nun in der Endphase meines Studiums. Ich schreibe gerade meine Masterarbeit. Eigentlich hätte ich sie schon fertigstellen sollen, aber aufgrund meiner beruflichen Situation habe ich sie verlängert.
+
+Dieser Master hat mir sehr geholfen und mein Selbstvertrauen gestärkt. Ich habe viel über Wirtschaft, Management, kritisches Denken, Problemlösung und vieles mehr gelernt.
+
+Meine Universität befindet sich in Dornbirn, Österreich, und heißt FHV Vorarlberg. Es ist eine Fachhochschule.
+
+Mein Studium war in englischer Sprache, dauerte 4 Semester und es waren 20 Studenten in meiner Klasse. Der Unterricht fand vor Ort statt und wir mussten jedes Wochenende zur Universität fahren.
+
+Die Fahrt von Friedrichshafen nach Dornbirn dauerte etwa eine Stunde, und wir mussten einmal umsteigen. Wenn wir den Anschluss verpasst haben, mussten wir 30 Minuten warten. Ich bin jede Woche nach Dornbirn zur Universität gefahren. Das war sehr stressig. Aber trotzdem habe ich die Herausforderung genossen.`
+  },
+  {
+    title: "Mein Traumjob / My Dream Job",
+    en: `I like to work in IT or Automotive, but my main focus is business.
+
+Today, getting healthy food at a lower price, I want to target that market.
+
+I want to set up a tiny healthy food store in my city in India first, then I will extend it to other places.
+
+My only intention is that even a poor man should eat a healthy meal.
+
+For this, I need a lot of investment. So I came to Germany. But due to the market and business situation, I lost my job.
+
+So, at the end I don't want to work for any company. I want to start mine own`,
+    de: `Ich arbeite gerne in der IT- oder Automobilbranche, aber mein Hauptaugenmerk liegt auf dem Geschäftsbereich.
+
+Heute möchte ich mich auf den Markt für gesunde Lebensmittel zu niedrigeren Preisen konzentrieren.
+
+Zuerst möchte ich einen kleinen Laden für gesunde Lebensmittel in meiner Stadt in Indien eröffnen und dann auf andere Orte ausweiten.
+
+Mein einziges Ziel ist es, dass auch arme Menschen sich gesund ernähren können.
+
+Dafür benötige ich viel Kapital. Deshalb bin ich nach Deutschland gekommen. Aufgrund der Markt- und Geschäftslage habe ich jedoch meinen Job verloren.
+
+Letztendlich möchte ich nicht für ein Unternehmen arbeiten, sondern mein eigenes gründen.`
+  },
+  {
+    title: "Lieblingsort in der Stadt / Favourite place in the city",
+    en: `I stay in Friedrichshafen, which has a lake. I like to visit the lake often.
+
+When I am happy, I call my friends to the lake. We meet, sit, talk, and relax, and I will get a chance to share my happy moments.
+
+When I am not happy, I go alone. I try to talk to nature, I try to bring out my frustration; it's a place where I reflect on my mistakes.
+
+The lake is where I relax, share my sorrows, and regenerate my energy. I love always visiting lake`,
+    de: `Ich wohne in Friedrichshafen, wo es einen See gibt. Ich gehe gerne oft an den See.
+
+Wenn ich glücklich bin, rufe ich meine Freunde an den See. Wir treffen uns, sitzen zusammen, unterhalten uns und entspannen uns, und ich habe die Möglichkeit, meine glücklichen Momente mit anderen zu teilen.
+
+Wenn ich nicht glücklich bin, gehe ich alleine dorthin. Ich versuche, mit der Natur zu sprechen, meine Frustration loszuwerden; es ist ein Ort, an dem ich über meine Fehler nachdenke.
+
+Am See kann ich mich entspannen, meine Sorgen teilen und neue Energie tanken. Ich liebe es, immer wieder zum See zu gehen.`
+  },
+  {
+    title: "Mein Lieblingsessen / My Favourite Food",
+    en: `I like all Indian foods, but my favourite one is Chicken Biryani.
+
+Chicken Biryani is a dish made with chicken, rice, and spices. It tastes so delicious and good.
+
+Chicken Biryani comes in various types, like Dum Biryani, Handi Biryani, Hyderabadi Biryani, and so on. I like all of them. When I visit India, the first dish I want to eat is chicken Biryani.
+
+My Mother and my wife also cook delicious chicken biryani. But my favourite one is the one cooked by my mother. In Germany, I miss this. I am excited to eat biryani prepared by my mother when I plan to visit India`,
+    de: `Ich mag alle indischen Gerichte, aber mein Lieblingsgericht ist Chicken Biryani.
+
+Chicken Biryani ist ein Gericht aus Hähnchenfleisch, Reis und Gewürzen. Es schmeckt köstlich und lecker.
+
+Es gibt verschiedene Arten von Chicken Biryani, wie Dum Biryani, Handi Biryani, Hyderabadi Biryani und so weiter. Ich mag sie alle. Wenn ich Indien besuche, ist Chicken Biryani das erste Gericht, das ich essen möchte.
+
+Meine Mutter und meine Frau kochen auch köstliches Chicken Biryani. Aber am liebsten mag ich das von meiner Mutter. In Deutschland vermisse ich das. Ich freue mich schon darauf, das Biryani meiner Mutter zu essen, wenn ich nach Indien reise.`
+  },
+  {
+    title: "Mein Wochenende / My Weekend",
+    en: `My weekend starts on Friday evening. I go to the lake with my friends; we talk, drink beer, and have a lot of fun.
+
+If we still have time, we will try to enter a bar or pub and make sure we remove our weekday frustration.
+
+Saturday is a flexible day; it depends on the weather. If it's sunny, I plan a hike; if it's raining or winter, I spend some time with my family watching movies. Sometimes I even do studies on Saturday if needed.
+
+Sunday is a refreshing day, I will gain all the energy for the next week to work and relax at home playing with my son and making everything ready for next week`,
+    de: `Mein Wochenende beginnt am Freitagabend. Ich gehe mit meinen Freunden zum See; wir unterhalten uns, trinken Bier und haben viel Spaß.
+
+Wenn wir noch Zeit haben, gehen wir in eine Bar oder Kneipe und lassen den Frust der Arbeitswoche hinter uns.
+
+Der Samstag ist ein flexibler Tag, der vom Wetter abhängt. Wenn es sonnig ist, plane ich eine Wanderung; wenn es regnet oder Winter ist, verbringe ich Zeit mit meiner Familie und schaue Filme. Manchmal lerne ich sogar am Samstag, wenn es nötig ist.
+
+Der Sonntag ist ein erholsamer Tag, an dem ich neue Energie für die nächste Woche tanke, zu Hause mit meinem Sohn spiele und alles für die nächste Woche vorbereite.`
+  }
+];
+
+const cards = document.getElementById('cards');
+
+function makeCard(topic, index) {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const h = document.createElement('h3');
+  h.className = 'topic-title';
+  h.textContent = `${index+1}. ${topic.title}`;
+  card.appendChild(h);
+
+  const deLabel = document.createElement('div');
+  deLabel.className = 'lang';
+  deLabel.textContent = 'Deutsch';
+  card.appendChild(deLabel);
+  const deText = document.createElement('div');
+  deText.className = 'text';
+  deText.textContent = topic.de;
+  card.appendChild(deText);
+
+  const enLabel = document.createElement('div');
+  enLabel.className = 'lang';
+  enLabel.textContent = 'English';
+  card.appendChild(enLabel);
+  const enText = document.createElement('div');
+  enText.className = 'text';
+  enText.textContent = topic.en;
+  card.appendChild(enText);
+
+  const row = document.createElement('div');
+  row.className = 'btn-row';
+  const playEn = document.createElement('button');
+  playEn.className = 'play-en';
+  playEn.textContent = '▶ Play English';
+  playEn.addEventListener('click', () => speakText(topic.en, 'en'));
+  const playDe = document.createElement('button');
+  playDe.className = 'play-de';
+  playDe.textContent = '▶ Play German';
+  playDe.addEventListener('click', () => speakText(topic.de, 'de'));
+  const stopBtn = document.createElement('button');
+  stopBtn.className = 'stop';
+  stopBtn.textContent = '■ Stop';
+  stopBtn.addEventListener('click', stopSpeaking);
+  row.appendChild(playEn);
+  row.appendChild(playDe);
+  row.appendChild(stopBtn);
+  card.appendChild(row);
+
+  return card;
+}
+
+topics.forEach((t, i) => cards.appendChild(makeCard(t, i)));
+
+// Speech synthesis controls
+let voices = [];
+const voiceSelectEN = document.getElementById('voice-en');
+const voiceSelectDE = document.getElementById('voice-de');
+const rate = document.getElementById('rate');
+const pitch = document.getElementById('pitch');
+
+function loadVoices() {
+  voices = window.speechSynthesis.getVoices();
+  // Fill selects
+  const fill = (sel, langPrefix) => {
+    const current = sel.value;
+    sel.innerHTML = '';
+    voices
+      .filter(v => v.lang && v.lang.toLowerCase().startsWith(langPrefix))
+      .sort((a,b)=> a.name.localeCompare(b.name))
+      .forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.voiceURI;
+        opt.textContent = `${v.name} (${v.lang})` + (v.default ? ' — default' : '');
+        sel.appendChild(opt);
+      });
+    // Fallback to any voice if none
+    if (!sel.options.length) {
+      voices
+        .sort((a,b)=> a.name.localeCompare(b.name))
+        .forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.voiceURI;
+          opt.textContent = `${v.name} (${v.lang})` + (v.default ? ' — default' : '');
+          sel.appendChild(opt);
+        });
+    }
+    // Try to restore previous selection
+    for (const opt of sel.options) {
+      if (opt.value === current) { sel.value = current; break; }
+    }
+  };
+  fill(voiceSelectEN, 'en');
+  fill(voiceSelectDE, 'de');
+}
+loadVoices();
+window.speechSynthesis.onvoiceschanged = loadVoices;
+
+let queue = [];
+let speaking = false;
+
+function speakText(text, langHint) {
+  stopSpeaking(true);
+  const chunks = splitIntoChunks(text, 240);
+  queue = chunks.map(chunk => {
+    const u = new SpeechSynthesisUtterance(chunk);
+    u.rate = parseFloat(rate.value || '1');
+    u.pitch = parseFloat(pitch.value || '1');
+    u.lang = langHint === 'de' ? 'de-DE' : 'en-US';
+    const sel = langHint === 'de' ? voiceSelectDE : voiceSelectEN;
+    const chosen = voices.find(v => v.voiceURI === sel.value);
+    if (chosen) u.voice = chosen;
+    u.onend = onUtteranceEnd;
+    return u;
+  });
+  speaking = true;
+  window.speechSynthesis.speak(queue.shift());
+}
+
+function onUtteranceEnd() {
+  if (!queue.length) { speaking = false; return; }
+  window.speechSynthesis.speak(queue.shift());
+}
+
+function stopSpeaking(immediate=false) {
+  queue = [];
+  speaking = false;
+  if (immediate) window.speechSynthesis.cancel();
+  else window.speechSynthesis.pause(), window.speechSynthesis.cancel();
+}
+
+function splitIntoChunks(text, maxLen) {
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  const chunks = [];
+  let buf = '';
+  for (const s of sentences) {
+    if ((buf + ' ' + s).trim().length <= maxLen) {
+      buf = (buf ? buf + ' ' : '') + s;
+    } else {
+      if (buf) chunks.push(buf);
+      buf = s;
+    }
+  }
+  if (buf) chunks.push(buf);
+  return chunks;
+}
+
+</script>
+</body>
+</html>
