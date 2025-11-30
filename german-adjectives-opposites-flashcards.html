@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>German Opposites – Voice Flashcards</title>
+<style>
+  :root{
+    --bg:#0b1020; --card:#101831; --ink:#e9ecf1; --muted:#a9b1c7; --accent:#7aa2f7; --good:#9ece6a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  header{padding:20px 16px; text-align:center; border-bottom:1px solid #223; }
+  header h1{margin:0 0 6px;font-size:clamp(22px,4vw,32px)}
+  header p{margin:0;color:var(--muted)}
+  main{max-width:960px;margin:24px auto;padding:0 16px;display:grid;gap:16px;grid-template-columns:1fr; }
+  .controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .btn{background:#1b2342;border:1px solid #2a3566;color:var(--ink);padding:10px 14px;border-radius:12px;cursor:pointer;transition:.2s; font-weight:600}
+  .btn:hover{background:#243060}
+  .btn.secondary{background:#121a33}
+  .toggle input{display:none}
+  .toggle label{display:inline-block;padding:10px 14px;border-radius:12px;border:1px solid #2a3566;background:#121a33;cursor:pointer}
+  .toggle input:checked + label{background:#243060}
+  .deck{display:grid;grid-template-columns:1fr; gap:16px; align-items:center; justify-items:center;}
+  .card{width:min(720px,95%); background:var(--card); border:1px solid #2a3566; border-radius:20px; padding:22px; box-shadow:0 10px 30px rgba(0,0,0,.35); cursor:pointer; perspective:1000px; position:relative;}
+  .inner{position:relative; transform-style:preserve-3d; transition:transform .5s; min-height:220px; display:grid; place-items:center; padding:8px}
+  .card.flipped .inner{transform:rotateY(180deg)}
+  .side{position:absolute; inset:0; display:grid; place-items:center; gap:8px; backface-visibility:hidden; padding:14px}
+  .back{transform:rotateY(180deg)}
+  .word{font-size:clamp(28px,6vw,44px); font-weight:800; letter-spacing:.5px; text-align:center}
+  .sub{color:var(--muted); font-size:clamp(14px,2.5vw,18px);}
+  .emoji{font-size:48px; line-height:1; filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));}
+  .speakbar{display:flex; gap:8px; justify-content:center; margin-top:10px}
+  .pill{font-size:13px; background:#0e1530; border:1px solid #2a3566; padding:6px 10px; border-radius:999px}
+  .status{text-align:center; color:var(--muted);}
+  .table-wrap{overflow:auto; max-height:50vh; display:none}
+  table{border-collapse:collapse; width:100%}
+  th,td{border:1px solid #273259; padding:8px; text-align:left}
+  th{background:#0e1530; position:sticky; top:0}
+  .linklike{color:var(--accent); text-decoration:underline; cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <h1>German Adjectives & Opposites — Voice Flashcards</h1>
+  <p>Click the card to flip. Use ▶ Speak to hear German (de‑DE). Shuffle to study. Table view included.</p>
+</header>
+
+<main>
+  <div class="controls">
+    <button class="btn" id="prev">⟵ Prev</button>
+    <button class="btn" id="next">Next ⟶</button>
+    <button class="btn" id="shuffle">🔀 Shuffle</button>
+    <button class="btn" id="speak">▶ Speak</button>
+    <button class="btn secondary" id="slow">🐢 Slow</button>
+    <button class="btn secondary" id="autoplay">▶ Auto</button>
+    <button class="btn secondary" id="tableToggle">📋 Table</button>
+  </div>
+
+  <div class="deck">
+    <div class="card" id="card">
+      <div class="inner">
+        <div class="side front">
+          <div class="emoji" id="emoji">📚</div>
+          <div class="word" id="deWord">ruhig</div>
+          <div class="sub" id="enMeaning">calm / quiet</div>
+          <div class="speakbar">
+            <span class="pill">Click card to flip</span>
+            <span class="pill">Opposite on back</span>
+          </div>
+        </div>
+        <div class="side back">
+          <div class="emoji" id="emojiBack">📚</div>
+          <div class="word" id="deOpp">laut</div>
+          <div class="sub" id="enOpp">loud / noisy</div>
+        </div>
+      </div>
+    </div>
+    <div class="status" id="status">1 / 1</div>
+  </div>
+
+  <div class="table-wrap" id="tableWrap">
+    <table id="dataTable">
+      <thead><tr><th>German</th><th>English</th><th>Opposite (German)</th><th>Opposite (English)</th><th>Icon</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+const DATA = [["ruhig", "calm / quiet", "laut", "loud / noisy", "🤫"], ["leise", "quiet / soft (sound)", "laut", "loud", "🔉"], ["glücklich", "happy", "traurig", "sad", "😊"], ["dunkel", "dark", "hell", "bright / light", "🌑"], ["lang", "long", "kurz", "short", "📏"], ["teuer", "expensive", "billig / preiswert / günstig", "cheap / affordable", "💰"], ["oben", "up / above", "unten", "down / below", "⬆️"], ["klein", "small", "groß", "big / large", "🔹"], ["schnell", "fast", "langsam", "slow", "⚡"], ["früh", "early", "spät", "late", "🌅"], ["sofort", "immediately", "später", "later", "⏱️"], ["langweilig", "boring", "interessant / aufregend", "interesting / exciting", "🥱"], ["heiß / warm", "hot / warm", "kalt", "cold", "🌡️"], ["nah", "near", "fern", "far / distant", "📍"], ["einfach", "simple / easy", "schwierig", "difficult", "✅"], ["leicht", "light (weight) / easy", "schwer", "heavy / hard", "🪶"], ["gut", "good", "schlecht", "bad", "👍"], ["hart", "hard", "weich", "soft", "🪨"], ["stark", "strong", "schwach", "weak", "💪"], ["ähnlich", "similar", "anders", "different", "🧩"], ["schön", "beautiful / pretty", "hässlich", "ugly", "🌸"], ["neu", "new", "alt", "old", "🆕"], ["jung", "young", "alt", "old", "🧒"], ["sonnig", "sunny", "regnerisch", "rainy", "☀️"], ["sauber", "clean", "schmutzig", "dirty", "🧼"], ["süß", "sweet", "sauer", "sour", "🍬"], ["kostenlos", "free (of charge)", "kostenpflichtig", "paid / chargeable", "🆓"], ["gesund", "healthy", "ungesund", "unhealthy", "🥗"], ["faul", "lazy", "aktiv / fleißig", "active / diligent", "😴"], ["lecker / köstlich", "tasty / delicious", "schlecht (vom Geschmack)", "bad-tasting", "🍽️"], ["frisch", "fresh", "verdorben", "spoiled", "🥦"], ["reich", "rich", "arm", "poor", "🏰"], ["dünn", "thin", "dick", "thick / fat", "🧵"], ["intelligent", "intelligent", "dumm", "stupid / dumb", "🧠"], ["frei", "free", "beschäftigt", "busy", "🆓"], ["frei", "free", "gefangen", "captured", "🕊️"], ["falsch", "wrong / false", "richtig", "right / correct", "❌"], ["weiß", "white", "schwarz", "black", "⚪"], ["leer", "empty", "voll", "full", "⚪️"], ["riesig", "huge", "winzig", "tiny", "🐘"], ["breit", "wide", "schmal", "narrow", "📏"]];
+
+let idx = 0;
+let slow = false;
+let timer = null;
+
+const card = document.getElementById("card");
+const emoji = document.getElementById("emoji");
+const emojiBack = document.getElementById("emojiBack");
+const deWord = document.getElementById("deWord");
+const enMeaning = document.getElementById("enMeaning");
+const deOpp = document.getElementById("deOpp");
+const enOpp = document.getElementById("enOpp");
+const statusEl = document.getElementById("status");
+const tableWrap = document.getElementById("tableWrap");
+const tbody = document.querySelector("#dataTable tbody");
+
+function renderTable() {
+  tbody.innerHTML = "";
+  DATA.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td style="font-size:20px">${row[4]}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function update() {
+  const [de,en,oppDe,oppEn,icon] = DATA[idx];
+  emoji.textContent = icon;
+  emojiBack.textContent = icon;
+  deWord.textContent = de;
+  enMeaning.textContent = en;
+  deOpp.textContent = oppDe;
+  enOpp.textContent = oppEn;
+  statusEl.textContent = `${idx+1} / ${DATA.length}`;
+}
+
+function speak(text) {
+  if (!("speechSynthesis" in window)) { alert("Speech Synthesis not supported in this browser."); return; }
+  window.speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "de-DE";
+  if (slow) msg.rate = 0.8;
+  window.speechSynthesis.speak(msg);
+}
+
+function speakCurrent() {
+  const [de] = DATA[idx];
+  speak(de);
+}
+
+document.getElementById("prev").onclick = () => { idx = (idx - 1 + DATA.length) % DATA.length; update(); card.classList.remove("flipped"); };
+document.getElementById("next").onclick = () => { idx = (idx + 1) % DATA.length; update(); card.classList.remove("flipped"); };
+document.getElementById("shuffle").onclick = () => {
+  for (let i = DATA.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [DATA[i], DATA[j]] = [DATA[j], DATA[i]];
+  }
+  idx = 0; update(); card.classList.remove("flipped");
+};
+document.getElementById("speak").onclick = speakCurrent;
+document.getElementById("slow").onclick = (e) => { slow = !slow; e.target.textContent = slow ? "🐢 Slow (on)" : "🐢 Slow"; };
+document.getElementById("autoplay").onclick = (e) => {
+  if (timer) { clearInterval(timer); timer = null; e.target.textContent = "▶ Auto"; return; }
+  speakCurrent();
+  e.target.textContent = "⏸ Auto";
+  timer = setInterval(() => { document.getElementById("next").click(); speakCurrent(); }, 2500);
+};
+
+document.getElementById("tableToggle").onclick = () => {
+  tableWrap.style.display = (tableWrap.style.display === "block") ? "none" : "block";
+};
+
+card.addEventListener("click", () => card.classList.toggle("flipped"));
+
+renderTable();
+update();
+</script>
+</body>
+</html>
